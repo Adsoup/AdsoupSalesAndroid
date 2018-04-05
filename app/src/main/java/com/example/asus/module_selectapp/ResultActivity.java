@@ -13,8 +13,9 @@ import static com.example.asus.module_selectapp.MainActivity.list_app_choose;
  */
 
 public class ResultActivity extends Activity {
+
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onCreate(savedInstanceState); 
         setContentView(R.layout.activity_result);
         ListView view = (ListView) findViewById(R.id.app_choose_list);
 
