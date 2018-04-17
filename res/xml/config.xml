@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="io.adsoup.sales.mobile" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <feature name="Whitelist">
+        <param name="android-package" value="org.apache.cordova.whitelist.WhitelistPlugin" />
+        <param name="onload" value="true" />
+    </feature>
+    <feature name="PushNotification">
+        <param name="android-package" value="com.adobe.phonegap.push.PushPlugin" />
+    </feature>
+    <feature name="StatusBar">
+        <param name="android-package" value="org.apache.cordova.statusbar.StatusBar" />
+        <param name="onload" value="true" />
+    </feature>
+    <name>AdsoupMobile</name>
+    <description>
+        Adsoup Mobile platform.
+    </description>
+    <author email="dev@adsoup.io" href="http://sales.adsoup.io">
+        Adsoup Team
+    </author>
+    <content src="frame.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
+    <hook src="scripts/copy-front-build.js" type="before_build" />
+    <hook src="scripts/copy-front-build.js" type="before_run" />
+    <icon density="mdpi" src="res/icon/android/mdpi.png" />
+    <icon density="hdpi" src="res/icon/android/hdpi.png" />
+    <icon density="xhdpi" src="res/icon/android/xhdpi.png" />
+    <icon density="xxhdpi" src="res/icon/android/xxhdpi.png" />
+    <icon density="xxxhdpi" src="res/icon/android/xxxhdpi.png" />
+    <allow-intent href="market:*" />
+    <resource-file src="res/screen/android/screen.png" target="res/drawable/screen.png" />
+    <resource-file src="google-services-adsoup-sales-dev.json" target="google-services.json" />
+    <preference name="loglevel" value="DEBUG" />
+    <preference name="StatusBarBackgroundColor" value="#1E8E78" />
+</widget>
