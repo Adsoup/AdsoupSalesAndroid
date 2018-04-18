@@ -14,12 +14,15 @@ import android.util.Log;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.robj.notificationhelperlibrary.utils.NotificationUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import models.Action;
 
 import static io.adsoup.sales.mobile.MainActivity.KEY_APP_PATH;
 
@@ -72,15 +75,17 @@ public class BouncerService extends NotificationListenerService {
             String title = extras.getString("android.title");
             String text = extras.getCharSequence("android.text").toString();
 
-            postToFirebase(appPath, packageName, text, title);
+            // postToFirebase(appPath, packageName, text, title);
 
-            NotificationWear nw = extractWearNotification(sbn);
-            replyNotification(nw);
+            Action a = NotificationUtils.getQuickReplyAction(sbn.getNotification(), packageName);
+            a.sendReply(getApplicationContext(), "this is a reply from adsoup");
 
             Log.i(TAG, "title:"+title+" of "+packageName);
             Log.i(TAG, "text:"+text+" ticker:"+ticker);
             } catch (NullPointerException npe){
                 Log.e(TAG, "Cannot retrieve data(NullException occurs");
+            } catch (PendingIntent.CanceledException e) {
+                Log.e(TAG, "Cannot reply to intent");
             }
         } else {
             Log.d(TAG, "Ignore notice from "+packageName);
@@ -98,92 +103,6 @@ public class BouncerService extends NotificationListenerService {
         node.updateChildren(msg.toMap());
 
         Log.i(TAG, "Posted: "+who+"\t"+text+" from "+pkgName);
-    }
-
-    /**
-     * To extract WearNotification with RemoteInputs that we can use to respond later on
-     * @param statusBarNotification
-     * @return
-     */
-    private NotificationWear extractWearNotification(StatusBarNotification statusBarNotification) {
-        //Should work for communicators such:"com.whatsapp", "com.facebook.orca", "com.google.android.talk", "jp.naver.line.android", "org.telegram.messenger"
-        NotificationWear notificationWear = new NotificationWear();
-        notificationWear.packageName = statusBarNotification.getPackageName();
-
-        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender(statusBarNotification.getNotification());
-        List<NotificationCompat.Action> actions = wearableExtender.getActions();
-        for(NotificationCompat.Action act : actions) {
-            if(act != null && act.getRemoteInputs() != null) {
-                notificationWear.remoteInputs.addAll(Arrays.asList(act.getRemoteInputs()));
-            }
-        }
-        List<Notification> pages = wearableExtender.getPages();
-        notificationWear.pages.addAll(pages);
-
-        notificationWear.bundle = statusBarNotification.getNotification().extras;
-
-        //TODO find how to pass Tag with sending PendingIntent, might fix Hangout problem
-        notificationWear.tag = statusBarNotification.getTag();
-
-        notificationWear.pendingIntent = statusBarNotification.getNotification().contentIntent;
-        if (notificationWear.pendingIntent == null){
-            Log.e(TAG, "NO PENDING INTENT!!!!?!?!");
-        }
-        return notificationWear;
-    }
-
-    private static NotificationCompat.Action getQuickReplyAction(Notification n) {
-        for(int i = 0; i < NotificationCompat.getActionCount(n); i++) {
-            NotificationCompat.Action action = NotificationCompat.getAction(n, i);
-            for(int x = 0; x < action.getRemoteInputs().length; x++) {
-                RemoteInput remoteInput = action.getRemoteInputs()[x];
-                if(remoteInput.getResultKey().toLowerCase().contains(REPLY_KEYWORD))
-                    return action;
-            }
-        }
-        return null;
-    }
-
-    private static NotificationCompat.Action getWearReplyAction(Notification n) {
-        NotificationCompat.WearableExtender wearableExtender = new NotificationCompat.WearableExtender(n);
-        for (NotificationCompat.Action action : wearableExtender.getActions()) {
-            for (int x = 0; x < action.getRemoteInputs().length; x++) {
-                RemoteInput remoteInput = action.getRemoteInputs()[x];
-                if (remoteInput.getResultKey().toLowerCase().contains(REPLY_KEYWORD))
-                    return action;
-            }
-        }
-        return null;
-    }
-
-    private void replyNotification(NotificationWear nw){
-        if (nw.pendingIntent == null)
-            return; //No pending intent
-
-        RemoteInput[] remoteInputs = new RemoteInput[nw.remoteInputs.size()];
-
-        Intent localIntent = new Intent();
-        //localIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        Bundle localBundle = nw.bundle;
-        int i = 0;
-        for(RemoteInput remoteIn : nw.remoteInputs){
-            remoteInputs[i] = remoteIn;
-            //This work, apart from Hangouts as probably they need additional parameter (notification_tag?)
-            localBundle.putCharSequence(remoteInputs[i].getResultKey(), "Our answer: cool!?"+i);
-            i++;
-        }
-
-
-        RemoteInput.addResultsToIntent(remoteInputs, localIntent, localBundle);
-        try {
-            Log.i(TAG, "Trying to send back to intent");
-            nw.pendingIntent.send(this.getApplicationContext(), 0, localIntent);
-            Log.i(TAG, "Sent!!!!!");
-        } catch (PendingIntent.CanceledException e) {
-            Log.e(TAG, "replyToLastNotification error: " + e.getLocalizedMessage());
-        } catch (NullPointerException npe){
-            Log.e(TAG, npe.getMessage(), npe.getCause());
-        }
     }
 
     @Override
